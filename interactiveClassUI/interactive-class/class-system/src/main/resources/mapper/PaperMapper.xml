@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.code.classsystem.dao.PaperMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.code.classsystem.entity.Paper">
+        <id column="id" property="id" />
+        <result column="paper_name" property="paperName" />
+        <result column="paper_score" property="paperScore" />
+        <result column="paper_time" property="paperTime" />
+        <result column="answer_begin_time" property="answerBeginTime" />
+        <result column="answer_end_time" property="answerEndTime" />
+        <result column="publish_user_id" property="publishUserId" />
+        <result column="publish_time" property="publishTime" />
+        <result column="answer_user_id" property="answerUserId" />
+        <result column="class_id" property="classId" />
+        <result column="student_num" property="studentNum" />
+        <result column="upload_url" property="uploadUrl" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, paper_name, paper_score, paper_time, answer_begin_time, answer_end_time, publish_user_id, publish_time, answer_user_id, class_id, student_num,upload_url
+    </sql>
+
+    <select id="listPage" resultType="com.code.classsystem.vo.PaperInfoVo" parameterType="com.code.classsystem.entity.Paper">
+          SELECT paper.id ,paper.course_id,course.course_name,paper.paper_name,paper.paper_time,paper.paper_score,paper.upload_url
+            from paper
+            left join course on course.id=paper.course_id
+        <where>
+            <if test="publishUserId != null">
+                paper.publish_user_id = #{publishUserId}
+            </if>
+            <if test="id != null">
+                and paper.id = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryMyPaper" resultType="com.code.classsystem.entity.Paper" parameterType="String">
+        SELECT paper.*
+            from paper 	left join course c1 on c1.id=paper.course_id
+			LEFT JOIN class_course c2 on c2.course_id=c1.id
+            LEFT join class_user on class_user.class_id=c2.class_id
+        WHERE class_user.member_id=#{userId}
+    </select>
+
+    <select id="queryPaperResult" resultType="com.code.classsystem.vo.PaperResultBinVo" parameterType="String">
+        select paper_id,id,class_name,courseId,IFNULL((get_score/total_score),0) good_rate from (
+                    select p3.id paper_id,c2.id,c2.class_name,sum(p1.score) total_score,sum(p2.score) get_score,c5.course_id courseId
+                                from paper_question p1  left join user_question p2 on p1.id=p2.question_id
+                                left join class_user c1 on c1.member_id=p2.user_id
+                                right JOIN class c2 on c2.id=c1.class_id
+																left JOIN class_course c5 on c5.class_id=c2.id and c5.class_id=c2.id
+                                left join paper p3 on p3.id=p1.paper_id and p3.course_id=c5.course_id
+                                LEFT join course c3 on c3.id=p3.course_id
+                   WHERE  c5.course_id=#{courseId}
+				GROUP BY c2.id,c2.class_name,p1.paper_id,c5.course_id )a
+    </select>
+
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.code.classsystem.dao.ClassMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.code.classsystem.entity.Class">
+        <id column="id" property="id"/>
+        <result column="class_name" property="className"/>
+        <result column="class_num" property="classNum"/>
+        <result column="class_introduce" property="classIntroduce"/>
+        <result column="class_create_code" property="classCreateCode"/>
+        <result column="create_date" property="createDate"/>
+        <result column="update_date" property="updateDate"/>
+        <result column="is_delete" property="isDelete"/>
+    </resultMap>
+
+<!-- extends="BaseResultMap"， classVoResultMap继承 BaseResultMap   -->
+    <resultMap id="classVoResultMap" type="com.code.classsystem.vo.ClassVo" extends="BaseResultMap">
+        <result column="createUserName" property="createUserName"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, class_name, class_num, class_introduce, class_create_code, create_date, update_date, is_delete
+    </sql>
+
+    <select id="getClassByClassCode" resultMap="BaseResultMap" parameterType="string">
+    select * from  class where class_create_code = #{classCreateCode}
+</select>
+
+    <select id="getClassByClassNameAndCurId" resultMap="BaseResultMap" parameterType="string">
+    select distinct * from  class cl
+    inner join class_user cu on  cl.id = cu.class_id
+    where cl.class_name = #{className} and cu.member_id = #{userId}
+</select>
+
+    <select id="listPage" resultMap="BaseResultMap" parameterType="com.code.classsystem.vo.ClassSearchVo">
+    select distinct cl.*,u.name as createUserName
+      from  class cl
+      left join class_user cu on  cl.id = cu.class_id
+     left join user u on  u.id = cu.created_user_id
+     <where>
+         <if test="creatorId != null">
+             cu.created_user_id = #{creatorId}
+         </if>
+     </where>
+     order by cl.class_name
+</select>
+
+
+</mapper>

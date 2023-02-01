@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.code.classsystem.dao.TestSituationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.code.classsystem.entity.TestSituation">
+        <result column="user_id" property="userId" />
+        <result column="course_id" property="courseId" />
+        <result column="question_url" property="questionUrl" />
+        <result column="homework_url" property="homeworkUrl" />
+        <result column="homework_id" property="homeworkId" />
+        <result column="paper_id" property="paperId" />
+        <result column="res_id" property="resId" />
+        <result column="file_name" property="fileName" />
+        <association property="courseResource" javaType="com.code.classsystem.entity.CourseResource">
+            <id property="id" column="id" />
+            <result property="courseResourceName" column="courseResourceName" />
+            <result property="resourceDes" column="resource_des" />
+            <result property="resourceType" column="resource_type" />
+            <result property="resourcePath" column="resource_path" />
+            <result property="userId" column="cr_user_id" />
+            <result property="courseId" column="cr_course_id" />
+            <result property="classId" column="class_id" />
+            <result property="createTime" column="create_time" />
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        user_id, course_id, question_url, homework_url,homework_id,paper_id,res_id,fileName
+    </sql>
+
+    <select id="listPage" resultMap="BaseResultMap" parameterType="com.code.classsystem.entity.TestSituation">
+
+          select ts.user_id,ts.question_url,ts.homework_url,ts.homework_id,ts.paper_id,ts.res_id,ts.file_name from test_situation ts
+
+        <where>
+            <if test="userId != null">
+                 ts.user_id = #{userId}
+            </if>
+            <if test="courseId != null">
+               and ts.course_id = #{courseId}
+            </if>
+            <if test="homeworkId != null">
+              and  ts.homework_id = #{homeworkId}
+            </if>
+            <if test="paperId != null">
+               and ts.paper_id = #{paperId}
+            </if>
+            <if test="resId != null">
+                and ts.res_id = #{resId}
+            </if>
+        </where>
+        <!--<where>
+            <if test="studentId != null">
+                h.student_id = #{studentId}
+            </if>
+            <if test="teacherId != null">
+                and h.teacher_id = #{teacherId}
+            </if>
+        </where>-->
+    </select>
+    <select id="selectByCourseIds" resultMap="BaseResultMap">
+        SELECT
+            tb.*,
+            id,
+            course_resource_name,
+            resource_des,
+            resource_type,
+            resource_path,
+            cr.user_id as cr_user_id,
+            cr.course_id as cr_course_id,
+            class_id,
+            create_time
+        FROM test_situation tb
+        LEFT JOIN course_resource cr on tb.res_id = cr.id
+        where 1=1
+        and tb.course_id in
+        <foreach collection="list" item="courseId" open="(" separator="," close=")">
+            #{courseId}
+        </foreach>
+        or cr.course_id in
+        <foreach collection="list" item="courseId" open="(" separator="," close=")">
+            #{courseId}
+        </foreach>
+    </select>
+
+    <update id="update" parameterType="com.code.classsystem.entity.TestSituation">
+        update test_situation
+        <set>
+            <if test="userId !=null" >user_id=#{userId},</if>
+            <if test="courseId !=null" >course_id=#{courseId},</if>
+            <if test="questionUrl !=null" >question_url=#{questionUrl},</if>
+            <if test="homeworkUrl !=null" >homework_url=#{homeworkUrl},</if>
+            <if test="homeworkId !=null" >homework_id=#{homeworkId},</if>
+            <if test="paperId !=null" >paper_id=#{paperId},</if>
+            <if test="resId !=null" >res_id=#{resId}</if>
+            <if test="fileName !=null" >file_name=#{fileName}</if>
+        </set>
+        <where>
+            <if test="userId != null">
+               and user_id = #{userId}
+            </if>
+            <if test="courseId != null">
+               and course_id = #{courseId}
+            </if>
+            <if test="homeworkId != null">
+               and homework_id = #{homeworkId}
+            </if>
+            <if test="paperId != null">
+               and paper_id = #{paperId}
+            </if>
+            <if test="resId != null">
+                and res_id = #{resId}
+            </if>
+        </where>
+    </update>
+
+</mapper>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.code.classsystem.dao.ClassUserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.code.classsystem.entity.ClassUser">
+        <result column="id" property="id" />
+        <result column="class_id" property="classId" />
+        <result column="class_name" property="className" />
+        <result column="member_id" property="memberId" />
+        <result column="created_user_id" property="createdUserId" />
+        <result column="creat_time" property="creatTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, class_name, member_id, created_user_id, creat_time, update_time
+    </sql>
+
+    <select id="showClassUsers" resultType="com.code.classsystem.entity.User" parameterType="string">
+        select * from user u
+        where u.id in (select member_id from class_user where class_id = #{classId} )
+    </select>
+
+    <select id="listClassByUserId" resultType="com.code.classsystem.entity.Class" parameterType="string">
+        select * from class c
+        where c.id in (select class_id from class_user where member_id = #{userId} )
+    </select>
+
+    <select id="listTeacherClasses" resultType="com.code.classsystem.entity.Class" parameterType="string">
+        select * from class c
+        where c.id in (select class_id from class_user where created_user_id = #{teacherId} )
+    </select>
+
+
+    <select id="queryStuStatus" resultType="com.code.classsystem.entity.ClassStudent" parameterType="com.code.classsystem.vo.ClassStudentVo">
+        select c1.id courseId,cc.class_id classId,u1.member_id stuId,u2.name stuName,
+        (
+        CASE
+        WHEN u3.sign_in = 1
+        AND u3.sign_time  &lt;= substring(c1.begin_time,12)
+        AND u3.sign_time IS NOT NULL THEN
+        '正常签到'
+        WHEN u3.sign_in = 1
+        AND u3.sign_time > substring(c1.begin_time,12)
+        AND u3.sign_time IS NOT NULL THEN
+        '迟到'
+        WHEN u3.sign_in = 1
+        AND u3.sign_time IS NULL THEN
+        '未签到'
+        END
+        ) signStatus
+        from class_user u1 LEFT JOIN user u2 ON u1.member_id = u2.id
+        left join class_course cc on cc.class_id = u1.class_id
+        left join course c1 on c1.id = cc.course_id
+        LEFT JOIN user_sign u3 on u3.class_id = u1.class_id and u3.course_id=c1.id
+        where u3.sign_in=1 and c1.id = #{courseId} and cc.class_id = #{classId}
+    </select>
+
+
+</mapper>

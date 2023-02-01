@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.code.classsystem.dao.UserSignMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.code.classsystem.entity.UserSign">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="user_name" property="userName" />
+        <result column="sign_time" property="signTime" />
+        <result column="sign_place" property="signPlace" />
+        <result column="sign_in" property="signIn" />
+<!--        <result column="sign_out" property="signOut" />-->
+        <result column="ip" property="ip" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, user_name, sign_time, sign_place, sign_in, sign_out, ip
+    </sql>
+
+    <select id="querySignInfo" resultType="com.code.classsystem.vo.SignVo">
+         select c4.member_id userId,c3.id,c2.id course_id,sign_place, MAX(case sign_in when 1 then sign_time else  null end )signPreTime,
+              MAX(case sign_in when 0 then sign_time else  null end )signNextTime ,c2.begin_time,c2.end_time
+              from class_course c1 LEFT JOIN course c2 on c1.course_id=c2.id
+							left join class c3 on c1.class_id=c3.id
+							left join user_sign u ON c2.id = u.course_id
+							left join class_user c4 on c4.class_id=c3.id and c4.member_id=u.user_id
+         where c4.member_id=#{userId} and c3.id=#{classId} and c2.id=#{courseId}
+    </select>
+
+</mapper>

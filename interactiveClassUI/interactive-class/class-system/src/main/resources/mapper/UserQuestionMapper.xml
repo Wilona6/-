@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.code.classsystem.dao.UserQuestionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.code.classsystem.entity.UserQuestion">
+        <result column="id" property="id" />
+        <result column="question_id" property="questionId" />
+        <result column="user_id" property="userId" />
+        <result column="my_answer" property="myAnswer" />
+        <result column="correct_answer" property="correctAnswer" />
+        <result column="score" property="score" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, question_id, user_id, my_answer, correct_answer, score, create_time, update_time
+    </sql>
+
+    <select id="queryMyResult"  resultType="com.code.classsystem.vo.PaperResultVo" parameterType="map">
+        select p1.paper_id,p1.id,p1.question_answer ,p2.user_id,p2.my_answer,p1.score,p2.score get_score,p1.question_type,p1.question_num
+            from paper_question p1 left join user_question p2 on p2.question_id=p1.id where p2.user_id=#{userId} and p1.paper_id=#{paperId}
+        ORDER BY p1.question_type asc, p1.question_num asc
+    </select>
+
+</mapper>

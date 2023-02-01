@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.code.classsystem.dao.AnnouncementMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.code.classsystem.entity.Announcement">
+        <id column="announcement_id" property="announcementId" />
+        <result column="announcement_title" property="announcementTitle" />
+        <result column="announcement_publishers" property="announcementPublishers" />
+        <result column="announcement_details" property="announcementDetails" />
+        <result column="is_delete" property="isDelete" />
+        <result column="type" property="type" />
+        <result column="class_id" property="classId" />
+        <result column="course_id" property="courseId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        announcement_id, announcement_title, announcement_details, announcement_publishers,is_delete,type,class_id,course_id
+    </sql>
+
+    <sql id="baseQuery">
+        select
+            <include refid="Base_Column_List" />
+        from announcement
+    </sql>
+    <select id="listPage" resultMap="BaseResultMap">
+        <include refid="baseQuery" />
+        <where>
+            is_delete = 0
+            <if test="announcementId != null">
+                and announcement_id = #{announcementId}
+            </if>
+            <if test="announcementTitle != null">
+                and announcement_title like '%${announcementTitle}%'
+            </if>
+            <if test="announcementPublishers != null">
+                and announcement_publishers = #{announcementPublishers}
+            </if>
+            <if test="announcementDetails != null">
+                and announcement_detail like '%${announcementDetails}%'
+            </if>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+            <if test="classId != null">
+                and class_id = #{classId}
+            </if>
+            <if test="courseId != null">
+                and course_id = #{courseId}
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

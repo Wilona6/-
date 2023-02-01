@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.code.classsystem.dao.CourseMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.code.classsystem.entity.Course">
+        <id column="id" property="id"/>
+        <result column="created_user_id" property="createdUserId"/>
+        <result column="course_name" property="courseName"/>
+        <result column="course_introduce" property="courseIntroduce"/>
+        <result column="course_time" property="courseTime"/>
+        <result column="course_score" property="courseScore"/>
+        <result column="student_num" property="studentNum"/>
+        <result column="begin_time" property="beginTime"/>
+        <result column="end_time" property="endTime"/>
+    </resultMap>
+
+    <resultMap id="TeacherCourseInfoMap" type="com.code.classsystem.vo.TeacherCourseVo">
+        <id column="course_id" property="courseId"/>
+        <result column="course_name" property="courseName"/>
+        <collection property="classList" javaType="list" ofType="com.code.classsystem.entity.Class">
+            <id column="id" property="id"/>
+            <result column="class_name" property="className"/>
+            <result column="class_num" property="classNum"/>
+            <result column="class_introduce" property="classIntroduce"/>
+            <result column="class_create_code" property="classCreateCode"/>
+            <result column="create_date" property="createDate"/>
+            <result column="update_date" property="updateDate"/>
+            <result column="is_delete" property="isDelete"/>
+        </collection>
+    </resultMap>
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="CourseInfoMap" type="com.code.classsystem.vo.CourseInfoVo" extends="BaseResultMap">
+        <result column="cc_course_id" property="courseId"></result>
+        <collection property="classNameList" javaType="list" ofType="string">
+            <result column="class_name"/>
+        </collection>
+        <collection property="pptResources" javaType="list" ofType="com.code.classsystem.entity.CourseResource">
+            <id column="pptR_id" property="id"/>
+            <result column="pptR_course_resource_name" property="courseResourceName"/>
+
+            <result column="pptR_resource_path" property="resourcePath"/>
+            <result column="pptR_resource_type" property="resourceType"/>
+            <!--            <result column="resource_des" property="resourceDes"/>-->
+            <!--            <result column="user_id" property="userId"/>-->
+            <!--            <result column="course_id" property="courseId"/>-->
+            <!--            <result column="class_id" property="classId"/>-->
+            <!--            <result column="create_time" property="createTime"/>-->
+        </collection>
+        <collection property="videoResources" javaType="list" ofType="com.code.classsystem.entity.CourseResource">
+            <id column="vr_id" property="id"/>
+            <result column="vr_course_resource_name" property="courseResourceName"/>
+
+            <result column="vr_resource_type" property="resourceType"/>
+            <result column="vr_resource_path" property="resourcePath"/>
+            <!--            <result column="user_id" property="userId"/>-->
+            <!--            <result column="resource_des" property="resourceDes"/>-->
+            <!--            <result column="course_id" property="courseId"/>-->
+            <!--            <result column="class_id" property="classId"/>-->
+            <!--            <result column="create_time" property="createTime"/>-->
+        </collection>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, created_user_id,course_name, course_introduce, course_time, course_score, class_id, class_name, class_num, begin_time, end_time
+    </sql>
+
+    <select id="mcourseInfo" parameterType="String" resultType="com.code.classsystem.vo.CourseAndClass">
+        select DISTINCT c1.id as courseId,cls.id classId,c1.course_name as courseName,
+        cls.class_name AS className,cls.class_num as classNum
+         from course c1
+         left join class_course cc on c1.id = cc.course_id
+         left join class cls on cls.id = cc.class_id
+         left join class_user c3 on c3.class_id = cls.id
+          where c3.member_id = #{userId}
+    </select>
+
+    <select id="queryTeachCourse" parameterType="String" resultMap="TeacherCourseInfoMap">
+        select DISTINCT c1.id as course_id,c1.course_name ,cls.*
+         from course c1
+        left join class_course cc on c1.id = cc.course_id
+         left join class cls on cls.id = cc.class_id
+		WHERE created_user_id = #{userId}
+    </select>
+
+    <select id="listPage" parameterType="com.code.classsystem.entity.Course" resultMap="CourseInfoMap">
+        select
+        cc.course_id as cc_course_id,
+        c1.*,
+        cls.class_name ,cls.class_num,
+       pptr.id as pptR_id,  pptr.course_resource_name as pptR_course_resource_name,
+        pptr.resource_path as pptR_resource_path,pptr.resource_type as pptR_resource_type,
+
+        vr.id as vr_id,  vr.course_resource_name as vr_course_resource_name,
+        vr.resource_path as vr_resource_path, vr.resource_type as vr_resource_type
+         from course c1
+          left join class_course cc on c1.id = cc.course_id
+		  left join class cls on cls.id = cc.class_id
+         left join class_user cu on cu.class_id =cc.class_id
+         left join course_resource pptr on c1.id = pptr.course_id and pptr.resource_type = 1
+          left join course_resource vr on c1.id = vr.course_id and vr.resource_type = 2
+        <where>
+            <if test="createdUserId != null">
+                c1.created_user_id = #{createdUserId}
+            </if>
+        </where>
+        order by c1.course_name,pptr.course_resource_name
+    </select>
+
+    <select id="getDetailById" parameterType="string" resultMap="CourseInfoMap">
+        select c1.*,
+        cls.class_name ,cls.class_num,
+         pptr.id as pptR_id,  pptr.course_resource_name as pptR_course_resource_name,
+        pptr.resource_path as pptR_resource_path,pptr.resource_type as pptR_resource_type,
+
+        vr.id as vr_id,  vr.course_resource_name as vr_course_resource_name,
+        vr.resource_path as vr_resource_path, vr.resource_type as vr_resource_type
+        from course c1
+          left join class_course cc on c1.id = cc.course_id
+		  left join class cls on cls.id = cc.class_id
+         left join class_user cu on cu.class_id =cc.class_id
+         left join course_resource pptr on c1.id = pptr.course_id and pptr.resource_type = 1
+          left join course_resource vr on c1.id = vr.course_id and vr.resource_type = 2
+          where c1.id = #{id}
+    </select>
+    <select id="selectAll" resultType="com.code.classsystem.entity.Course">
+        select
+            *
+        from course
+    </select>
+
+</mapper>
